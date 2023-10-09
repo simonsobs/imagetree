@@ -337,3 +337,49 @@ class QuadTree:
         """
 
         output_buffer = np.empty((width, height), dtype=self.configuration.dtype)
+
+        def node_overlaps(node: Node) -> bool:
+            x_spans_left_edge = x <= node.x and x + width > node.x
+            x_spans_right_edge = (
+                x < node.x + node.size and x + width >= node.x + node.size
+            )
+            x_contains = x >= node.x and x + width <= node.x + node.size
+
+            x_valid = x_spans_left_edge or x_spans_right_edge or x_contains
+
+            y_spans_bottom_edge = y <= node.y and y + height > node.y
+            y_spans_top_edge = (
+                y < node.y + node.size and y + height >= node.y + node.size
+            )
+            y_contains = y >= node.y and y + height <= node.y + node.size
+
+            y_valid = y_spans_bottom_edge or y_spans_top_edge or y_contains
+
+            return x_valid and y_valid
+
+        def recurse_tree(node: Node):
+            if not node_overlaps(node):
+                return
+
+            if node.level == self.configuration.refinement_levels:
+                # We're at the bottom... Figure out where we overlap with the buffer.
+                input_selector = np.s_[
+                    max(x - node.x, 0) : min(x - node.x + width, node.size),
+                    max(y - node.y, 0) : min(y - node.y + height, node.size),
+                ]
+
+                output_selector = np.s_[
+                    max(node.x - x, 0) : min(node.x - x + node.size, width),
+                    max(node.y - y, 0) : min(node.y - y + node.size, height),
+                ]
+
+                output_buffer[output_selector] = node.data[input_selector]
+
+                return
+
+            for child in node.flat_children:
+                recurse_tree(child)
+
+        recurse_tree(node=self.nodes[0][0])
+
+        return output_buffer
