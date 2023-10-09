@@ -1,7 +1,6 @@
 # type: ignore[attr-defined]
 """ImageTree is an image processing library that uses quadtrees to simplify working with very large files."""
 
-import sys
 from importlib import metadata as importlib_metadata
 
 
