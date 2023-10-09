@@ -33,6 +33,7 @@ classifiers = [  #! Update me
 python = "^3.9, <3.12"
 numpy = "^1.20.0"
 matplotlib = "^3"
+astropy = "^5"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.1"
