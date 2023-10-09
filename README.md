@@ -28,7 +28,7 @@ poetry add imagetree
 
 ### Makefile usage
 
-[`Makefile`](https://github.com/jborrow/imagetree/blob/master/Makefile) contains a lot of functions for faster development.
+[`Makefile`](https://github.com/simsonsobs/imagetree/blob/master/Makefile) contains a lot of functions for faster development.
 
 <details>
 <summary>1. Download and remove Poetry</summary>
@@ -100,7 +100,7 @@ make update-dev-deps
 
 ## 📈 Releases
 
-You can see the list of available releases on the [GitHub Releases](https://github.com/jborrow/imagetree/releases) page.
+You can see the list of available releases on the [GitHub Releases](https://github.com/simsonsobs/imagetree/releases) page.
 
 We follow [Semantic Versions](https://semver.org/) specification.
 
@@ -109,9 +109,9 @@ We use [`Release Drafter`](https://github.com/marketplace/actions/release-drafte
 
 ## 🛡 License
 
-[![License](https://img.shields.io/github/license/jborrow/imagetree)](https://github.com/jborrow/imagetree/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/simsonsobs/imagetree)](https://github.com/simsonsobs/imagetree/blob/master/LICENSE)
 
-This project is licensed under the terms of the `MIT` license. See [LICENSE](https://github.com/jborrow/imagetree/blob/master/LICENSE) for more details.
+This project is licensed under the terms of the `MIT` license. See [LICENSE](https://github.com/simsonsobs/imagetree/blob/master/LICENSE) for more details.
 
 
 ## Credits [![🚀 Your next Python package needs a bleeding-edge project structure.](https://img.shields.io/badge/python--package--template-%F0%9F%9A%80-brightgreen)](https://github.com/TezRomacH/python-package-template)
