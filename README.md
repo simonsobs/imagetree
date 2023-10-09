@@ -94,6 +94,8 @@ Update all dev libraries to the latest version using one comand
 ```bash
 make update-dev-deps
 ```
+</p>
+</details>
 
 
 ## 📈 Releases
