@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 from astropy.io import fits
+from PIL import Image
 
 from imagetree.tree import QuadTree, TreeConfiguration
 
@@ -95,6 +96,91 @@ class FITSImage:
                     int(ceil(log2(max(raw_file_data.shape) / 256))), 0
                 ),
                 dtype=raw_file_data.dtype,
+            )
+
+        self.tree = QuadTree(configuration=configuration)
+
+        self.tree.initialize_from_array(data=raw_file_data)
+        self.tree.walk_tree_and_populate()
+
+        return
+
+
+class StandardImage:
+    metadata: dict[str, Any]
+    "Metadata read from the image file."
+    tree: QuadTree
+    "Quadtree to load tiles from."
+    filename: Path
+    "Path to original data file. Data from file is not kept in memory."
+
+    def __init__(self, filename: Union[str, Path]):
+        """
+        Object for loading standard images from disk.
+
+        Parameters
+        ----------
+        filename : Union[str, Path]
+            Path to file to open.
+        """
+
+        if isinstance(filename, str):
+            self.filename = Path(filename)
+        else:
+            self.filename = filename
+
+        return
+
+    def load_file(self) -> np.ndarray:
+        """
+        Loads data from file, including metadata.
+
+        Returns
+        -------
+        np.ndarray
+            Full data array read from disk for use in building tree.
+        """
+
+        image = Image.open(self.filename)
+
+        direct_read_keys = [
+            "format",
+            "format_description",
+            "height",
+            "width",
+            "text",
+            "palette",
+        ]
+
+        self.metadata = {key: getattr(image, key, None) for key in direct_read_keys}
+
+        self.metadata["exif"] = dict(image.getexif())
+
+        data = np.asarray(image)
+
+        return data
+
+    def build_tree(self, configuration: Optional[TreeConfiguration] = None):
+        """
+        Builds the tree by loading the file.
+
+        Parameters
+        ----------
+        configuration : TreeConfiguration, optional
+            Configuration for the tree. If you don't provide this, we will
+            figure out an appropriate one for you.
+        """
+
+        raw_file_data = self.load_file()
+
+        if configuration is None:
+            configuration = TreeConfiguration(
+                base_grid_size=256,
+                refinement_levels=max(
+                    int(ceil(log2(max(raw_file_data.shape) / 256))), 0
+                ),
+                dtype=raw_file_data.dtype,
+                base_grid_channels=raw_file_data.shape[-1],
             )
 
         self.tree = QuadTree(configuration=configuration)
