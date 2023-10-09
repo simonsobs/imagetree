@@ -58,6 +58,7 @@ def test_tree_recover_arbritary():
     tree.initialize_from_array(base_array)
     tree.walk_tree_and_populate()
 
+    # These are prime on purpose...
     x = 73
     y = 67
     height = 29
@@ -68,3 +69,24 @@ def test_tree_recover_arbritary():
     assert recovered.shape == (width, height)
     assert recovered.dtype == np.float64
     assert (recovered == base_array[x : x + width, y : y + height]).all()
+
+    # Now try to recover the entire array.
+    recovered = tree.extract_pixels(x=0, y=0, height=256, width=256)
+
+    assert recovered.shape == (256, 256)
+    assert recovered.dtype == np.float64
+    assert (recovered == base_array).all()
+
+    # We should behave well and return something sensible if they ask for a region
+    # larger than the entire grid, or for instance one that overlaps the edges.
+
+    x = -5
+    y = -7
+    height = 317
+    width = 307
+
+    recovered = tree.extract_pixels(x=x, y=y, height=height, width=width)
+
+    assert recovered.shape == (width, height)
+    assert recovered.dtype == np.float64
+    assert (recovered[abs(x) : abs(x) + 256, abs(y) : abs(y) + 256] == base_array).all()
