@@ -108,13 +108,15 @@ def plot_hierarchy_for_cell(node: Node, refinement_levels: int, fig=None, ax=Non
         return
     else:
         # Display final child.
+        child = node.children[-1][-1]
+
         ax.imshow(
-            node.children[-1].data.T,
+            child.data.T,
             extent=[
-                node.children[-1].x,
-                node.children[-1].x + node.children[-1].size,
-                node.children[-1].y,
-                node.children[-1].y + node.children[-1].size,
+                child.x,
+                child.x + child.size,
+                child.y,
+                child.y + child.size,
             ],
             origin="lower",
             vmin=-100,
@@ -123,7 +125,7 @@ def plot_hierarchy_for_cell(node: Node, refinement_levels: int, fig=None, ax=Non
         )
 
     # Leave final cell at this 'level' unsplit.
-    for child in node.children[:-1]:
+    for child in node.flat_children[:-1]:
         plot_hierarchy_for_cell(
             child, refinement_levels=refinement_levels, fig=fig, ax=ax
         )
