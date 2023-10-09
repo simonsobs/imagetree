@@ -336,7 +336,7 @@ class QuadTree:
             Requested pixel buffer of size (width, height)
         """
 
-        output_buffer = np.empty((width, height), dtype=self.configuration.dtype)
+        output_buffer = np.zeros((width, height), dtype=self.configuration.dtype)
 
         def node_overlaps(node: Node) -> bool:
             x_spans_left_edge = x <= node.x and x + width > node.x
