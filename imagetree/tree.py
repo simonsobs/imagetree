@@ -3,6 +3,10 @@ Contains objects and functions required to generate the quad tree of images.
 """
 
 
+from typing import Optional
+
+from itertools import chain
+
 import numpy as np
 
 
@@ -67,7 +71,15 @@ class Node:
         self.data = data
         self.size = size
         self.level = level
-        self.children = None
+        self.children: Optional[list[list[Node]]] = None
+
+    @property
+    def flat_children(self) -> chain["Node"]:
+        """
+        A flattened list of all children of this node. This is useful for iterating
+        over all nodes when you do not care about order.
+        """
+        return chain.from_iterable(self.children)
 
 
 class QuadTree:
@@ -158,18 +170,20 @@ class QuadTree:
             half_node_size = node.size // 2
 
             node.children = [
-                Node(
-                    x=node.x + half_node_size * x,
-                    y=node.y + half_node_size * y,
-                    size=node.size // 2,
-                    level=node.level + 1,
-                    data=None,
-                )
+                [
+                    Node(
+                        x=node.x + half_node_size * x,
+                        y=node.y + half_node_size * y,
+                        size=node.size // 2,
+                        level=node.level + 1,
+                        data=None,
+                    )
+                    for y in range(2)
+                ]
                 for x in range(2)
-                for y in range(2)
             ]
 
-            for child in node.children:
+            for child in node.flat_children:
                 populate_children(child)
 
         for x in range(self.nx_top_level):
@@ -198,7 +212,7 @@ class QuadTree:
             if node.level == self.configuration.refinement_levels:
                 return
 
-            for child in node.children:
+            for child in node.flat_children:
                 walk_tree_and_populate_lower_resolution(child)
 
             # Now populate this node with the sum of its children.
@@ -210,8 +224,8 @@ class QuadTree:
                 (base_grid_size, base_grid_size), dtype=self.configuration.dtype
             )
 
-            def average_child(index):
-                child_data = node.children[index].data
+            def average_child(x, y):
+                child_data = node.children[x][y].data
 
                 return 0.25 * (
                     child_data[::2, ::2]
@@ -221,18 +235,18 @@ class QuadTree:
                 )
 
             node.data[0 : base_grid_size // 2, 0 : base_grid_size // 2] = average_child(
-                0
+                0, 0
             )
             node.data[
                 0 : base_grid_size // 2, base_grid_size // 2 : base_grid_size
-            ] = average_child(1)
+            ] = average_child(0, 1)
             node.data[
                 base_grid_size // 2 : base_grid_size, 0 : base_grid_size // 2
-            ] = average_child(2)
+            ] = average_child(1, 0)
             node.data[
                 base_grid_size // 2 : base_grid_size,
                 base_grid_size // 2 : base_grid_size,
-            ] = average_child(3)
+            ] = average_child(1, 1)
 
             return
 
@@ -283,20 +297,43 @@ class QuadTree:
             if x < x_center:
                 right_target_level = x_center
                 if y < y_center:
-                    node = node.children[0]
+                    node = node.children[0][0]
                     top_target_level = y_center
                 else:
-                    node = node.children[1]
+                    node = node.children[0][1]
                     bottom_target_level = y_center
             else:
                 left_target_level = x_center
                 if y < y_center:
-                    node = node.children[2]
+                    node = node.children[1][0]
                     top_target_level = y_center
                 else:
-                    node = node.children[3]
+                    node = node.children[1][1]
                     bottom_target_level = y_center
 
             current_level += 1
 
         return node.data
+
+    def extract_pixels(self, x: int, y: int, width: int, height: int) -> np.ndarray:
+        """
+        Extracts requested pixels to a buffer. Top left is (x, y).
+
+        Parameters
+        ----------
+        x : int
+            Top left x coordinate
+        y : int
+            Top left y coordinate
+        width : int
+            Width of requested image in pixels
+        height : int
+            Height of requested image in pixels
+
+        Returns
+        -------
+        np.ndarray
+            Requested pixel buffer of size (width, height)
+        """
+
+        output_buffer = np.empty((width, height), dtype=self.configuration.dtype)

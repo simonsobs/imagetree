@@ -33,7 +33,7 @@ def test_tree_recover():
     tree.initialize_from_array(base_array)
     tree.walk_tree_and_populate()
 
-    recovered = tree.nodes[0][0].children[0].children[0].data
+    recovered = tree.nodes[0][0].children[0][0].children[0][0].data
 
     assert recovered.shape == (64, 64)
     assert recovered.dtype == np.float64
