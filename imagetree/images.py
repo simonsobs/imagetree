@@ -28,7 +28,7 @@ class FITSImage:
     def __init__(
         self,
         filename: Union[str, Path],
-        hdu: int = 0,
+        hdu: Optional[int] = 0,
         data_index: Optional[Union[int, slice]] = None,
     ):
         """
