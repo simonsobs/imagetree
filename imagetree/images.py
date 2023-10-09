@@ -4,6 +4,7 @@ Objects for loading and saving different image formats.
 
 from typing import Any, Optional, Union
 
+from math import ceil, log2
 from pathlib import Path
 
 import numpy as np
@@ -52,6 +53,7 @@ class FITSImage:
             self.filename = filename
 
         self.hdu = hdu
+        self.data_index = data_index
 
         return
 
@@ -69,25 +71,35 @@ class FITSImage:
             self.metadata = dict(handle[self.hdu].header)
 
             if self.data_index is None:
-                return handle[self.hdu].data
+                return handle[self.hdu].data.T
             else:
-                return handle[self.hdu].data[self.data_index]
+                return handle[self.hdu].data[self.data_index].T
 
-    def build_tree(self, configuration: TreeConfiguration):
+    def build_tree(self, configuration: Optional[TreeConfiguration] = None):
         """
         Builds the tree by loading the file.
 
         Parameters
         ----------
-        configuration : TreeConfiguration
-            Configuration for the tree.
+        configuration : TreeConfiguration, optional
+            Configuration for the tree. If you don't provide this, we will
+            figure out an appropriate one for you.
         """
-
-        tree = QuadTree(configuration=configuration)
 
         raw_file_data = self.load_file()
 
-        tree.initialize_from_array(data=raw_file_data)
-        tree.walk_tree_and_populate()
+        if configuration is None:
+            configuration = TreeConfiguration(
+                base_grid_size=256,
+                refinement_levels=max(
+                    int(ceil(log2(max(raw_file_data.shape) / 256))), 0
+                ),
+                dtype=raw_file_data.dtype,
+            )
+
+        self.tree = QuadTree(configuration=configuration)
+
+        self.tree.initialize_from_array(data=raw_file_data)
+        self.tree.walk_tree_and_populate()
 
         return
