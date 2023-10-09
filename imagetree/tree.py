@@ -3,7 +3,7 @@ Contains objects and functions required to generate the quad tree of images.
 """
 
 
-from typing import Optional
+from typing import Any, Optional
 
 from itertools import chain
 
@@ -11,7 +11,13 @@ import numpy as np
 
 
 class TreeConfiguration:
-    def __init__(self, base_grid_size: int, refinement_levels: int, dtype=np.float32):
+    def __init__(
+        self,
+        base_grid_size: int,
+        refinement_levels: int,
+        dtype=np.float32,
+        base_grid_channels: int = 1,
+    ):
         """
         Parameters
         ----------
@@ -19,19 +25,39 @@ class TreeConfiguration:
         base_grid_size : int
             The size of the base grid cells (i.e. one
             dimensional resolution of images that we segment into).
-
         refinement_levels : int
             The number of refinement levels to use. This is
             the number of times we will subdivide the image. The top level cells
             will cover base_grid_size * 2 ** refinement_levels pixels.
-
         dtype : np.dtype
             Data type to use for derived grids.
+        base_grid_channels: int
+            Number of channels to use for the base grid. For raw data, this is 1,
+            for RGBA images, this is 4.
         """
 
         self.base_grid_size = base_grid_size
         self.refinement_levels = refinement_levels
         self.dtype = dtype
+        self.base_grid_channels = base_grid_channels
+
+    @property
+    def grid_specification(self) -> dict[str, Any]:
+        """
+        Kwargs specification of the grid for numpy constructors.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary containing both the shape and data type.
+        """
+
+        if self.base_grid_channels == 1:
+            shape = (self.base_grid_size, self.base_grid_size)
+        else:
+            shape = (self.base_grid_size, self.base_grid_size, self.base_grid_channels)
+
+        return dict(shape=shape, dtype=self.dtype)
 
 
 class Node:
@@ -140,13 +166,7 @@ class QuadTree:
         def populate_children(node: Node):
             if node.level == self.configuration.refinement_levels:
                 # Actually need to read the data from main grid.
-                node.data = np.zeros(
-                    (
-                        self.configuration.base_grid_size,
-                        self.configuration.base_grid_size,
-                    ),
-                    dtype=self.configuration.dtype,
-                )
+                node.data = np.zeros(**self.configuration.grid_specification)
 
                 # Find which area actually overlaps.
                 x_min = min(node.x, data.shape[0])
@@ -220,9 +240,7 @@ class QuadTree:
             base_grid_size = self.configuration.base_grid_size
 
             # Average the children.
-            node.data = np.empty(
-                (base_grid_size, base_grid_size), dtype=self.configuration.dtype
-            )
+            node.data = np.empty(**self.configuration.grid_specification)
 
             def average_child(x, y):
                 child_data = node.children[x][y].data
@@ -336,7 +354,25 @@ class QuadTree:
             Requested pixel buffer of size (width, height)
         """
 
-        output_buffer = np.zeros((width, height), dtype=self.configuration.dtype)
+        if self.configuration.base_grid_channels == 1:
+            output_buffer = np.zeros((width, height), dtype=self.configuration.dtype)
+        elif self.configuration.base_grid_channels == 3:
+            output_buffer = np.zeros((width, height, 3), dtype=self.configuration.dtype)
+        elif self.configuration.base_grid_channels == 4:
+            output_buffer = np.zeros((width, height, 4), dtype=self.configuration.dtype)
+            # Set all alpha channels to full.
+            if np.issubdtype(self.configuration.dtype, np.floating):
+                output_buffer[:, :, 3] = 1.0
+            elif np.issubdtype(self.configuration.dtype, np.unit8):
+                output_buffer[:, :, 3] = 255
+            else:
+                raise RuntimeError("Cannot understand data type for output buffer.")
+        else:
+            raise RuntimeError(
+                "Cannot understand number of channels for output buffer "
+                f"({self.configuration.base_grid_channels}, should be one "
+                "of 1, 3, or 4)."
+            )
 
         def node_overlaps(node: Node) -> bool:
             x_spans_left_edge = x <= node.x and x + width > node.x
