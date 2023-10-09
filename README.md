@@ -1,6 +1,5 @@
-# imagetree
-
 <div align="center">
+<h1>ImageTree</h1>
 
 [![Build status](https://github.com/simonsobs/imagetree/workflows/build/badge.svg)](https://github.com/simonsobs/imagetree/actions?query=workflow%3Abuild)
 
