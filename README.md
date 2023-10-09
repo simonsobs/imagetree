@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Build status](https://github.com/simonsobs/imagetree/workflows/build/badge.svg?branch=main&event=push)](https://github.com/simonsobs/imagetree/actions?query=workflow%3Abuild)
+[![Build status](https://github.com/simonsobs/imagetree/workflows/build/badge.svg)](https://github.com/simonsobs/imagetree/actions?query=workflow%3Abuild)
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/simonsobs/imagetree/blob/main/.pre-commit-config.yaml)
