@@ -93,7 +93,7 @@ class FITSImage:
             configuration = TreeConfiguration(
                 base_grid_size=256,
                 refinement_levels=max(
-                    int(ceil(log2(max(raw_file_data.shape) / 256))), 0
+                    int(ceil(log2(max(raw_file_data.shape) / 256))) - 2, 0
                 ),
                 dtype=raw_file_data.dtype,
             )
@@ -177,7 +177,7 @@ class StandardImage:
             configuration = TreeConfiguration(
                 base_grid_size=256,
                 refinement_levels=max(
-                    int(ceil(log2(max(raw_file_data.shape) / 256))), 0
+                    int(ceil(log2(max(raw_file_data.shape) / 256))) - 2, 0
                 ),
                 dtype=raw_file_data.dtype,
                 base_grid_channels=raw_file_data.shape[-1],
