@@ -362,6 +362,11 @@ class QuadTree:
         -------
         np.ndarray
             Requested pixel buffer of size (width, height)
+
+        Raises
+        ------
+        RuntimeError
+            If the number of channels in the base grid is not 1, 3, or 4.
         """
 
         if self.configuration.base_grid_channels == 1:
