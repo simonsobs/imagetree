@@ -41,6 +41,9 @@ class TreeConfiguration:
         self.dtype = dtype
         self.base_grid_channels = base_grid_channels
 
+        if self.base_grid_size % 2 != 0:
+            raise ValueError("Base grid size must be even.")
+
     @property
     def grid_specification(self) -> dict[str, Any]:
         """
@@ -383,6 +386,8 @@ class QuadTree:
 
             x_valid = x_spans_left_edge or x_spans_right_edge or x_contains
 
+            print(x_spans_left_edge, x_spans_right_edge, x_contains, x_valid, "x")
+
             y_spans_bottom_edge = y <= node.y and y + height > node.y
             y_spans_top_edge = (
                 y < node.y + node.size and y + height >= node.y + node.size
@@ -390,6 +395,8 @@ class QuadTree:
             y_contains = y >= node.y and y + height <= node.y + node.size
 
             y_valid = y_spans_bottom_edge or y_spans_top_edge or y_contains
+
+            print(y_spans_bottom_edge, y_spans_top_edge, y_contains, y_valid, "y")
 
             return x_valid and y_valid
 
@@ -409,6 +416,9 @@ class QuadTree:
                     max(node.y - y, 0) : min(node.y - y + node.size, height),
                 ]
 
+                print("input", input_selector)
+                print("output", output_selector)
+
                 output_buffer[output_selector] = node.data[input_selector]
 
                 return
@@ -416,6 +426,7 @@ class QuadTree:
             for child in node.flat_children:
                 recurse_tree(child)
 
-        recurse_tree(node=self.nodes[0][0])
+        for node in chain.from_iterable(self.nodes):
+            recurse_tree(node=node)
 
         return output_buffer
