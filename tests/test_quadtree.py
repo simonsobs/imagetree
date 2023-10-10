@@ -3,6 +3,7 @@ Basic tests for the tree module. Tests if we can build trees, and recover the or
 """
 
 import numpy as np
+import pytest
 
 from imagetree.tree import Node, QuadTree, TreeConfiguration
 
@@ -19,6 +20,15 @@ def test_tree_build():
     tree.walk_tree_and_populate()
 
     assert tree.initialized
+
+
+def test_illegal_tree_configuration():
+    with pytest.raises(ValueError):
+        config = TreeConfiguration(
+            base_grid_size=31,
+            refinement_levels=222,
+            dtype=np.float32,
+        )
 
 
 def test_tree_recover():
@@ -90,3 +100,37 @@ def test_tree_recover_arbritary():
     assert recovered.shape == (width, height)
     assert recovered.dtype == np.float64
     assert (recovered[abs(x) : abs(x) + 256, abs(y) : abs(y) + 256] == base_array).all()
+
+
+def test_non_square():
+    config = TreeConfiguration(
+        base_grid_size=64,
+        refinement_levels=2,
+        dtype=np.float64,
+    )
+
+    x_size = 1427
+    y_size = 829
+
+    tree = QuadTree(config)
+    base_array = np.array([np.arange(x_size)] * y_size).T
+    tree.initialize_from_array(base_array)
+    tree.walk_tree_and_populate()
+
+    recovered = tree.extract_pixels(x=0, y=0, height=y_size, width=x_size)
+
+    import matplotlib.pyplot as plt
+
+    from imagetree.visualisation import plot_grid
+
+    # plt.imshow(recovered, cmap="Greys", vmin=0.0, vmax=x_size)
+    # plt.savefig('recovered.png')
+    # plt.clf()
+    # plot_grid(grid=tree.nodes, fig=None, ax=None, vmin=0.0, vmax=x_size)
+    # plt.xlim(0, x_size)
+    # plt.ylim(0, y_size)
+    # plt.savefig('base.png')
+
+    assert recovered.shape == (x_size, y_size)
+    assert recovered.dtype == np.float64
+    assert (recovered == base_array).all()
