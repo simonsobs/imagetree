@@ -4,10 +4,13 @@ Tree visualisation functions, for use in debugging and exploring trees.
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from tree import Node
+
+from imagetree.tree import Node
 
 
-def plot_grid(grid: list[list[Node]], fig=None, ax=None) -> tuple[plt.Figure, plt.Axes]:
+def plot_grid(
+    grid: list[list[Node]], fig=None, ax=None, vmin=None, vmax=None
+) -> tuple[plt.Figure, plt.Axes]:
     """
     Plots the cell grid at the top level.
 
@@ -19,6 +22,10 @@ def plot_grid(grid: list[list[Node]], fig=None, ax=None) -> tuple[plt.Figure, pl
         Matplotlib figure, will be generated if not given, by default None
     ax : plt.Axes, optional
         Matplotlib axes, will be generated if not given., by default None
+    vmin : float, optional
+        Minimum value to plot in colourmap, by default None
+    vmax : float, optional
+        Maximum value to plot in colourmap, by default None
 
     Returns
     -------
@@ -42,9 +49,9 @@ def plot_grid(grid: list[list[Node]], fig=None, ax=None) -> tuple[plt.Figure, pl
                     node.y + node.size,
                 ],
                 origin="lower",
-                vmin=-100,
-                vmax=100,
                 cmap="Grays",
+                vmin=vmin,
+                vmax=vmax,
             )
 
             ax.add_patch(
