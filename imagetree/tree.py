@@ -248,11 +248,18 @@ class QuadTree:
             def average_child(x, y):
                 child_data = node.children[x][y].data
 
-                return 0.25 * (
-                    child_data[::2, ::2]
-                    + child_data[1::2, ::2]
-                    + child_data[::2, 1::2]
-                    + child_data[1::2, 1::2]
+                if np.issubdtype(self.configuration.dtype, np.floating):
+                    quarter_data = 0.25 * child_data
+                else:
+                    # We lose some precision doing it this way, but it prevents
+                    # overflows.
+                    quarter_data = child_data // 4
+
+                return (
+                    quarter_data[::2, ::2]
+                    + quarter_data[1::2, ::2]
+                    + quarter_data[::2, 1::2]
+                    + quarter_data[1::2, 1::2]
                 )
 
             node.data[0 : base_grid_size // 2, 0 : base_grid_size // 2] = average_child(

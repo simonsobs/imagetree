@@ -156,7 +156,7 @@ class StandardImage:
 
         self.metadata["exif"] = dict(image.getexif())
 
-        data = np.asarray(image)
+        data = np.swapaxes(np.asarray(image), 0, 1)
 
         return data
 
