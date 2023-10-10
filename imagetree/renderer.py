@@ -8,11 +8,11 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import LogNorm
+from matplotlib.colors import ListedColormap, LogNorm
 
 
 class Renderer:
-    cmap: Union[str, plt.Colormap]
+    cmap: Union[str, ListedColormap]
     "Color map to use for rendering, defaults to 'viridis', and may not be used if RGBA buffers are provided."
     vmin: Optional[float]
     "Color map range minimum, defaults to None."
@@ -29,7 +29,7 @@ class Renderer:
 
     def __init__(
         self,
-        cmap: Union[str, plt.Colormap] = "viridis",
+        cmap: Union[str, ListedColormap] = "viridis",
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
         log_norm: Optional[bool] = False,
@@ -71,15 +71,16 @@ class Renderer:
         Buffer is transposed in x, y to render correctly within this function.
         """
 
-        if buffer.ndim > 2:
+        if buffer.ndim == 2:
             # Render with colour mapping, this is 'raw data'.
             plt.imsave(
                 fname,
-                buffer.T,
+                self.norm(buffer.T),
                 cmap=self.cmap,
-                norm=self.norm,
                 pil_kwargs=self.pil_kwargs,
                 format=self.format,
+                vmin=0.0,
+                vmax=1.0,
             )
         else:
             # Direct rendering
